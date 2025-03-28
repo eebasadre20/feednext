@@ -237,4 +237,13 @@ export class UsersRepository extends Repository<UsersEntity> {
 
         await this.save(account)
     }
+
+    async updatePassword(email: string, newPassword: string): Promise<void> {
+        const user = await this.getUserByEmail(email);
+        if (!user) throw new NotFoundException('User not found');
+
+        user.password = await argon2.hash(newPassword);
+        await this.save(user);
+    }
+
 }
