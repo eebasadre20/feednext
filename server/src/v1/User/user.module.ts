@@ -10,6 +10,8 @@ import { UserService } from './Service/user.service'
 import { UsersController } from './Controller/user.controller'
 import { MailService } from 'src/shared/Services/mail.service'
 import { EntriesRepository } from 'src/shared/Repositories/entries.repository'
+import { FollowersRepository } from 'src/shared/Repositories/followers.repository'
+
 import { AwsService } from 'src/shared/Services/aws.service'
 import { RolesGuard } from 'src/shared/Guards/roles.guard'
 
