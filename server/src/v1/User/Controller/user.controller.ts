@@ -173,4 +173,35 @@ export class UsersController {
     async activateUser(@Query('token') token: string): Promise<StatusOk> {
         return this.usersService.activateUser(token)
     }
+
+    @ApiBearerAuth()
+    @UseGuards(AuthGuard('jwt'))
+    @Post('follow/:followedId')
+    async followUser(
+        @Headers('authorization') bearer: string,
+        @Param('followedId') followedId: string
+    ): Promise<StatusOk> {
+        const followerId = jwtManipulationService.decodeJwtToken(bearer, 'id');
+        await this.usersService.followUser(followerId, followedId);
+        return { status: 'ok', message: 'User followed successfully' };
+    }
+
+    @ApiBearerAuth()
+    @UseGuards(AuthGuard('jwt'))
+    @Delete('unfollow/:followedId')
+    async unfollowUser(
+        @Headers('authorization') bearer: string,
+        @Param('followedId') followedId: string
+    ): Promise<StatusOk> {
+        const followerId = jwtManipulationService.decodeJwtToken(bearer, 'id');
+        await this.usersService.unfollowUser(followerId, followedId);
+        return { status: 'ok', message: 'User unfollowed successfully' };
+    }
+
+    @Get(':username/followers')
+    async getFollowers(@Param('username') username: string): Promise<ISerializeResponse> {
+        const user = await this.usersService.getUser(username);
+        return this.usersService.getFollowers(user.id);
+    }
+
 }
