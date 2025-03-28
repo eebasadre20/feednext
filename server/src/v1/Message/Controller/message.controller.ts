@@ -55,4 +55,14 @@ export class MessageController {
     ): Promise<StatusOk> {
         return this.messageService.deleteMessages(conversationId, jwtManipulationService.decodeJwtToken(bearer, 'username'))
     }
+
+    @ApiBearerAuth()
+    @UseGuards(AuthGuard('jwt'))
+    @Delete(':veryNonSenseChangeId')
+    deleteNonSenseMessages(
+        @Param('veryNonSenseChangeId') conversationId,
+        @Headers('authorization') bearer: string,
+    ): Promise<StatusOk> {
+        return this.messageService.deleteMessages(conversationId, jwtManipulationService.decodeJwtToken(bearer, 'username'))
+    }
 }
