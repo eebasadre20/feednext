@@ -221,43 +221,4 @@ export class AuthService {
 
         throw new BadRequestException('Token is not valid');
     }
-
-    async requestPasswordReset(dto: RequestPasswordResetDto): Promise<StatusOk> {
-        const user = await this.usersRepository.getUserByEmail(dto.email);
-        if (!user) throw new NotFoundException('User not found');
-
-        const resetToken = jwt.sign({ email: user.email }, configService.getEnv('SECRET_FOR_ACCESS_TOKEN'), { expiresIn: '1h' });
-        const resetUrl = `${configService.getEnv('APP_DOMAIN')}/auth/reset-password?token=${resetToken}`;
-
-        const mailBody: MailSenderBody = {
-            receiverEmail: dto.email,
-            recieverFullname: user.full_name,
-            subject: 'Password Reset Request',
-            text: resetUrl,
-        };
-
-        await this.mailService.sendPasswordResetMail(mailBody).catch(_error => {
-            throw new BadRequestException('SMTP transport failed');
-        });
-
-        return { status: 'ok', message: 'Password reset email sent' };
-    }
-
-    async resetPassword(dto: ResetPasswordDto): Promise<StatusOk> {
-        let decodedToken;
-        try {
-            decodedToken = jwt.verify(dto.token, configService.getEnv('SECRET_FOR_ACCESS_TOKEN'));
-        } catch (error) {
-            throw new BadRequestException('Token signature is not valid');
-        }
-
-        const user = await this.usersRepository.getUserByEmail(decodedToken.email);
-        if (!user) throw new NotFoundException('User not found');
-
-        user.password = await argon2.hash(dto.newPassword);
-        await this.usersRepository.save(user);
-
-        return { status: 'ok', message: 'Password has been reset successfully' };
-    }
-
 }
