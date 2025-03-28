@@ -190,4 +190,32 @@ export class AuthService {
 
         throw new BadRequestException('Token is not valid')
     }
+    
+    async verifyEmail(token: string): Promise<StatusOk> {
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(token, configService.getEnv('SECRET_FOR_ACCESS_TOKEN'));
+        } catch (error) {
+            throw new BadRequestException('Token signature is not valid');
+        }
+
+        if (decodedToken.verificationToken && decodedToken.username) {
+            const remainingTime: number = decodedToken.exp - Math.floor(Date.now() / 1000);
+            if (remainingTime <= 0) {
+                throw new BadRequestException('Verification token is no longer valid, it's expired');
+            }
+
+            const accountInformation = await this.redisService.getData(decodedToken.username);
+            if (!accountInformation) throw new NotFoundException('Account could not be found');
+
+            await this.usersRepository.createUser(JSON.parse(accountInformation));
+            await this.redisService.deleteData(decodedToken.username);
+            sitemapManipulationService.addToIndexedSitemap(`user/${decodedToken.username}`);
+
+            return { status: 'ok', message: 'Account has been verified' };
+        }
+
+        throw new BadRequestException('Token is not valid');
+    }
+
 }

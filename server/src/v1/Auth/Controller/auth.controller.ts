@@ -112,6 +112,11 @@ export class AuthController {
         return { status: 'ok', message: 'Token is valid' }
     }
 
+    @Get('verify-email')
+    async verifyEmail(@Query('token') token: string): Promise<StatusOk> {
+        return this.authService.verifyEmail(token);
+    }
+
     @Get('refresh-token')
     async refreshJwtToken(@Request() { cookies }): Promise<ISerializeResponse> {
         if (!cookies.rt) throw new BadRequestException('Server can not give access token without a refresh token')
