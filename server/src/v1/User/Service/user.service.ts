@@ -10,6 +10,8 @@ import { createReadStream } from 'fs'
 import { UsersEntity } from 'src/shared/Entities/users.entity'
 import { UsersRepository } from 'src/shared/Repositories/users.repository'
 import { UpdateUserDto } from '../Dto/update-user.dto'
+import { FollowersRepository } from 'src/shared/Repositories/followers.repository'
+
 import { serializerService, ISerializeResponse } from 'src/shared/Services/serializer.service'
 import { MailService } from 'src/shared/Services/mail.service'
 import { MailSenderBody } from 'src/shared/Services/types'
@@ -27,6 +29,9 @@ export class UserService {
         private readonly usersRepository: UsersRepository,
         @InjectRepository(EntriesRepository)
         private readonly entriesRepository: EntriesRepository,
+        @InjectRepository(FollowersRepository)
+        private readonly followersRepository: FollowersRepository,
+
         private readonly mailService: MailService,
         private readonly awsService: AwsService,
     ) {}
@@ -148,6 +153,20 @@ export class UserService {
         await this.usersRepository.disableUser(usernameParam)
         return { status: 'ok', message: 'Account successfully disabled' }
     }
+
+    async followUser(followerId: string, followedId: string): Promise<void> {
+        await this.followersRepository.followUser(followerId, followedId);
+    }
+
+    async unfollowUser(followerId: string, followedId: string): Promise<void> {
+        await this.followersRepository.unfollowUser(followerId, followedId);
+    }
+
+    async getFollowers(userId: string): Promise<ISerializeResponse> {
+        const followers = await this.followersRepository.getFollowers(userId);
+        return serializerService.serializeResponse('followers_list', followers);
+    }
+
 
     async activateUser(incToken: string): Promise<StatusOk> {
         let decodedToken
