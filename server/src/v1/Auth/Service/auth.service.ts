@@ -221,4 +221,42 @@ export class AuthService {
 
         throw new BadRequestException('Token is not valid');
     }
+
+    async requestPasswordReset(dto: RequestPasswordResetDto): Promise<StatusOk> {
+        const user = await this.usersRepository.findOne({ email: dto.email });
+        if (!user) throw new NotFoundException('User not found');
+
+        const resetToken = jwt.sign({ email: dto.email }, configService.getEnv('SECRET_FOR_RESET_TOKEN'), { expiresIn: '1h' });
+        const resetUrl = `${configService.getEnv('APP_DOMAIN')}/auth/reset-password?token=${resetToken}`;
+
+        const mailBody: MailSenderBody = {
+            receiverEmail: dto.email,
+            recieverFullname: user.fullName,
+            subject: 'Password Reset Request',
+            text: resetUrl,
+        };
+
+        await this.mailService.sendMail(mailBody).catch(_error => {
+            throw new BadRequestException('SMTP transport failed');
+        });
+
+        return { status: 'ok', message: 'Password reset link has been sent to your email' };
+    }
+
+    async resetPassword(dto: ResetPasswordDto): Promise<StatusOk> {
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(dto.token, configService.getEnv('SECRET_FOR_RESET_TOKEN'));
+        } catch (error) {
+            throw new BadRequestException('Token signature is not valid');
+        }
+
+        const user = await this.usersRepository.findOne({ email: decodedToken.email });
+        if (!user) throw new NotFoundException('User not found');
+
+        user.password = dto.newPassword; // Assume password is hashed in entity
+        await this.usersRepository.save(user);
+
+        return { status: 'ok', message: 'Password has been successfully reset' };
+    }
 }
