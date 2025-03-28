@@ -191,5 +191,3 @@ Please do not directly PR to 'master' branch, instead go for 'dev' branch.
 - Do not break the eslint rules.
 
 </div>
-
-## Testing!!!
