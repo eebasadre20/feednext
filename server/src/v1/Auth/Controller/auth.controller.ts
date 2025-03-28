@@ -24,6 +24,9 @@ import { CreateAccountDto } from '../Dto/create-account.dto'
 import { LoginDto } from '../Dto/login.dto'
 import { GenerateRecoveryKeyDto } from '../Dto/generate-recovery-key.dto'
 import { RecoverAccountDto } from '../Dto/recover-account.dto'
+import { RequestPasswordResetDto } from '../Dto/request-password-reset.dto'
+import { ResetPasswordDto } from '../Dto/reset-password.dto'
+
 import { ISerializeResponse } from 'src/shared/Services/serializer.service'
 import { configService } from 'src/shared/Services/config.service'
 import { StatusOk } from 'src/shared/Types'
@@ -74,6 +77,17 @@ export class AuthController {
     async signOut(@Headers('authorization') bearer: string): Promise<StatusOk> {
         return this.authService.signOut(bearer)
     }
+
+    @Post('request-password-reset')
+    async requestPasswordReset(@Body() dto: RequestPasswordResetDto): Promise<StatusOk> {
+        return this.authService.requestPasswordReset(dto);
+    }
+
+    @Post('reset-password')
+    async resetPassword(@Body() dto: ResetPasswordDto): Promise<StatusOk> {
+        return this.authService.resetPassword(dto);
+    }
+
 
     @RateLimit({
         points: 3,

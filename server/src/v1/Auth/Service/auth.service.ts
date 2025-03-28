@@ -1,3 +1,4 @@
+
 // Nest dependencies
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
@@ -14,6 +15,9 @@ import { MailSenderBody } from 'src/shared/Services/types'
 import { UsersRepository } from 'src/shared/Repositories/users.repository'
 import { MailService } from 'src/shared/Services/mail.service'
 import { CreateAccountDto } from '../Dto/create-account.dto'
+import { RequestPasswordResetDto } from '../Dto/request-password-reset.dto'
+import { ResetPasswordDto } from '../Dto/reset-password.dto'
+
 import { LoginDto } from '../Dto/login.dto'
 import { GenerateRecoveryKeyDto } from '../Dto/generate-recovery-key.dto'
 import { serializerService, ISerializeResponse } from 'src/shared/Services/serializer.service'
@@ -190,7 +194,7 @@ export class AuthService {
 
         throw new BadRequestException('Token is not valid')
     }
-    
+
     async verifyEmail(token: string): Promise<StatusOk> {
         let decodedToken;
         try {
@@ -216,6 +220,44 @@ export class AuthService {
         }
 
         throw new BadRequestException('Token is not valid');
+    }
+
+    async requestPasswordReset(dto: RequestPasswordResetDto): Promise<StatusOk> {
+        const user = await this.usersRepository.getUserByEmail(dto.email);
+        if (!user) throw new NotFoundException('User not found');
+
+        const resetToken = jwt.sign({ email: user.email }, configService.getEnv('SECRET_FOR_ACCESS_TOKEN'), { expiresIn: '1h' });
+        const resetUrl = `${configService.getEnv('APP_DOMAIN')}/auth/reset-password?token=${resetToken}`;
+
+        const mailBody: MailSenderBody = {
+            receiverEmail: dto.email,
+            recieverFullname: user.full_name,
+            subject: 'Password Reset Request',
+            text: resetUrl,
+        };
+
+        await this.mailService.sendPasswordResetMail(mailBody).catch(_error => {
+            throw new BadRequestException('SMTP transport failed');
+        });
+
+        return { status: 'ok', message: 'Password reset email sent' };
+    }
+
+    async resetPassword(dto: ResetPasswordDto): Promise<StatusOk> {
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(dto.token, configService.getEnv('SECRET_FOR_ACCESS_TOKEN'));
+        } catch (error) {
+            throw new BadRequestException('Token signature is not valid');
+        }
+
+        const user = await this.usersRepository.getUserByEmail(decodedToken.email);
+        if (!user) throw new NotFoundException('User not found');
+
+        user.password = await argon2.hash(dto.newPassword);
+        await this.usersRepository.save(user);
+
+        return { status: 'ok', message: 'Password has been reset successfully' };
     }
 
 }
