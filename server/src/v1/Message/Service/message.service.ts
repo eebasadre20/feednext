@@ -46,7 +46,8 @@ export class MessageService {
                 sendBy: from,
                 text: body
             })
-            // updates updated_at value to sort conversations by time
+                status: 'draft' // Default status
+            })
             conversation.unread_messages[0].username === recipient ? conversation.unread_messages[0].value++
                 : conversation.unread_messages[1].value++
             conversation.last_message_send_at = new Date()
@@ -58,6 +59,8 @@ export class MessageService {
                 conversationId: String(newConversation._id),
                 sendBy: from,
                 text: body
+            })
+                status: 'draft' // Default status
             })
             await this.conversationsRepository.increaseUnreadMessageCount(from, recipient)
             return newConversation
