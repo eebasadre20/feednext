@@ -28,14 +28,7 @@ export class MessageController {
 
     @ApiBearerAuth()
     @UseGuards(AuthGuard('jwt'))
-    @Patch(':messageId/status')
-    updateMessageStatus(
-        @Param('messageId') messageId: string,
-        @Headers('authorization') bearer: string,
-        @Body('status') status: string
-    ): Promise<StatusOk> {
-        return this.messageService.updateMessageStatus(messageId, jwtManipulationService.decodeJwtToken(bearer, 'username'), status);
-    }
+
     @ApiBearerAuth()
     @UseGuards(AuthGuard('jwt'))
     @Get('unread-message-info')
