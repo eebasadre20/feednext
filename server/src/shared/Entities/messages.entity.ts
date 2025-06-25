@@ -32,6 +32,9 @@ export class MessagesEntity {
     @Column({ type: 'string', length: 17 })
     send_by: string
 
+    @Column({ type: 'string', length: 10 })
+    status: string
+
     @CreateDateColumn({ type: 'date' })
     created_at: Date
 
