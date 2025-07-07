@@ -259,4 +259,27 @@ export class AuthService {
 
         return { status: 'ok', message: 'Password has been successfully reset' };
     }
+
+    async generateOtp(phoneNumber: string): Promise<StatusOk> {
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await this.redisService.setData(phoneNumber, otpCode, 300); // Store OTP for 5 minutes
+        const mailBody: MailSenderBody = {
+            receiverEmail: 'user@example.com', // Replace with actual email retrieval logic
+            recieverFullname: 'User Full Name', // Replace with actual name retrieval logic
+            subject: 'Your OTP Code',
+            text: `Your OTP code is ${otpCode}`,
+        };
+        await this.mailService.sendMail(mailBody);
+        return { status: 'ok', message: 'OTP has been sent to your email' };
+    }
+
+    async validateOtp(phoneNumber: string, otpCode: string): Promise<StatusOk> {
+        const storedOtp = await this.redisService.getData(phoneNumber);
+        if (storedOtp !== otpCode) {
+            throw new BadRequestException('Invalid OTP code');
+        }
+        await this.redisService.deleteData(phoneNumber);
+        return { status: 'ok', message: 'OTP validated successfully' };
+    }
+
 }
