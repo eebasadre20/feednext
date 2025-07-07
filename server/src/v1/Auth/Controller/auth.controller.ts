@@ -26,6 +26,9 @@ import { GenerateRecoveryKeyDto } from '../Dto/generate-recovery-key.dto'
 import { RecoverAccountDto } from '../Dto/recover-account.dto'
 import { RequestPasswordResetDto } from '../Dto/request-password-reset.dto'
 import { ResetPasswordDto } from '../Dto/reset-password.dto'
+import { GenerateOtpDto } from '../Dto/generate-otp.dto'
+import { ValidateOtpDto } from '../Dto/validate-otp.dto'
+
 
 import { ISerializeResponse } from 'src/shared/Services/serializer.service'
 import { configService } from 'src/shared/Services/config.service'
@@ -94,6 +97,16 @@ export class AuthController {
         duration: 300,
         errorMessage: 'You have reached the limit. You have to wait 5 minutes before trying again.'
     })
+    @Post('generate-otp')
+    async generateOtp(@Body() dto: GenerateOtpDto): Promise<StatusOk> {
+        return this.authService.generateOtp(dto.phoneNumber);
+    }
+
+    @Post('validate-otp')
+    async validateOtp(@Body() dto: ValidateOtpDto): Promise<StatusOk> {
+        return this.authService.validateOtp(dto.phoneNumber, dto.otpCode);
+    }
+
     @Patch('generate-recovery-key')
     generateRecoveryKey(@Body() dto: GenerateRecoveryKeyDto): Promise<StatusOk> {
         return this.authService.generateRecoveryKey(dto)

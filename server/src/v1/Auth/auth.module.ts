@@ -11,6 +11,9 @@ import { RedisService } from 'src/shared/Services/redis.service'
 import { UsersRepository } from 'src/shared/Repositories/users.repository'
 import { MailService } from 'src/shared/Services/mail.service'
 import { AuthService } from './Service/auth.service'
+import { OtpService } from './Service/otp.service'
+import { OtpController } from './Controller/otp.controller'
+
 import { UserModule } from '../User/user.module'
 import { AuthController } from './Controller/auth.controller'
 import { JwtStrategy } from './Strategy/jwt.strategy'
@@ -34,6 +37,8 @@ import { RolesGuard } from 'src/shared/Guards/roles.guard'
         }),
     ],
     controllers: [AuthController],
+    controllers: [AuthController, OtpController],
+
     providers: [
         AuthService,
         RedisService,
@@ -44,6 +49,18 @@ import { RolesGuard } from 'src/shared/Guards/roles.guard'
             useClass: RolesGuard
         }
     ]
+    providers: [
+        AuthService,
+        RedisService,
+        MailService,
+        JwtStrategy,
+        OtpService,
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard
+        }
+    ]
+
 })
 
 export class AuthModule {}
